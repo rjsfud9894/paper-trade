@@ -7,3 +7,7 @@ __pycache__/
 
 # 맥 시스템 파일
 .DS_Store
+
+# 가상환경
+venv/
+.python-version
