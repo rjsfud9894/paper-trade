@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from routes import auth_router
+from routes import stocks_router
 
 
 app = FastAPI(
@@ -11,6 +12,7 @@ app = FastAPI(
 
 # 라우터 연결
 app.include_router(auth_router)
+app.include_router(stocks_router)
 
 
 @app.get("/")
