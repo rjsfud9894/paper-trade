@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from routes import auth_router
 from routes import stocks_router
 from routes import trades_router
+from routes import portfolio_router
 
 app = FastAPI(
     title="Paper Trade API",
@@ -14,6 +15,7 @@ app = FastAPI(
 app.include_router(auth_router)
 app.include_router(stocks_router)
 app.include_router(trades_router)
+app.include_router(portfolio_router)
 
 
 @app.get("/")
