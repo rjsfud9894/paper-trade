@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Trade - 모의 주식 거래</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header>
+            <h1>📈 Paper Trade</h1>
+            <p>모의 주식 거래 연습</p>
+        </header>
+
+        <!-- 로그인/회원가입 섹션 -->
+        <section id="auth-section">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('login')">로그인</button>
+                <button class="tab" onclick="showTab('register')">회원가입</button>
+            </div>
+
+            <!-- 로그인 폼 -->
+            <form id="login-form" class="form">
+                <input type="email" id="login-email" placeholder="이메일" required>
+                <input type="password" id="login-password" placeholder="비밀번호" required>
+                <button type="submit">로그인</button>
+            </form>
+
+            <!-- 회원가입 폼 -->
+            <form id="register-form" class="form hidden">
+                <input type="text" id="register-username" placeholder="유저네임" required>
+                <input type="email" id="register-email" placeholder="이메일" required>
+                <input type="password" id="register-password" placeholder="비밀번호" required>
+                <button type="submit">회원가입</button>
+            </form>
+        </section>
+
+        <!-- 대시보드 (로그인 후) -->
+        <section id="dashboard-section" class="hidden">
+            <!-- 유저 정보 -->
+            <div class="user-info">
+                <span id="user-name">안녕하세요!</span>
+                <button onclick="logout()">로그아웃</button>
+            </div>
+
+            <!-- 포트폴리오 요약 -->
+            <div class="portfolio-summary">
+                <h2>💰 내 포트폴리오</h2>
+                <div class="summary-cards">
+                    <div class="card">
+                        <p>현금 잔고</p>
+                        <h3 id="balance">0원</h3>
+                    </div>
+                    <div class="card">
+                        <p>투자 금액</p>
+                        <h3 id="invested">0원</h3>
+                    </div>
+                    <div class="card">
+                        <p>총 자산</p>
+                        <h3 id="total-assets">0원</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 보유 주식 -->
+            <div class="holdings">
+                <h2>📊 보유 주식</h2>
+                <div id="holdings-list"></div>
+            </div>
+
+            <!-- 주식 거래 -->
+            <div class="trading">
+                <h2>💹 주식 거래</h2>
+                <div class="stock-list" id="stock-list"></div>
+                
+                <form id="trade-form" class="form">
+                    <select id="trade-symbol" required>
+                        <option value="">종목 선택</option>
+                    </select>
+                    <input type="number" id="trade-quantity" placeholder="수량" min="1" required>
+                    <input type="number" id="trade-price" placeholder="가격" min="0" step="0.01" required>
+                    <div class="trade-buttons">
+                        <button type="button" onclick="executeTrade('buy')" class="buy-btn">매수</button>
+                        <button type="button" onclick="executeTrade('sell')" class="sell-btn">매도</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 거래 내역 -->
+            <div class="history">
+                <h2>📜 거래 내역</h2>
+                <div id="history-list"></div>
+            </div>
+        </section>
+
+        <!-- 메시지 표시 -->
+        <div id="message" class="message hidden"></div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
