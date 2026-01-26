@@ -1,14 +1,25 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from routes import auth_router
 from routes import stocks_router
 from routes import trades_router
 from routes import portfolio_router
 
+
 app = FastAPI(
     title="Paper Trade API",
     description="모의 주식 거래 연습 API",
     version="0.1.0"
+)
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # 라우터 연결
