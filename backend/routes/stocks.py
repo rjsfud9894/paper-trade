@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import Stock
+from services import StockService
 
 
 router = APIRouter(prefix="/stocks", tags=["주식"])
@@ -22,7 +23,15 @@ class StockResponse(BaseModel):
         from_attributes = True
 
 
-# 주식 추가 요청 형식 (관리자용)
+class StockPriceResponse(BaseModel):
+    symbol: str
+    name: str
+    price: float
+    currency: str
+    change: float
+    change_percent: float
+
+
 class StockCreateRequest(BaseModel):
     symbol: str
     name: str
@@ -35,7 +44,7 @@ def get_stocks(db: Session = Depends(get_db)):
     return stocks
 
 
-# 특정 주식 조회
+# 특정 주식 조회 (DB)
 @router.get("/{symbol}", response_model=StockResponse)
 def get_stock(symbol: str, db: Session = Depends(get_db)):
     stock = db.query(Stock).filter(Stock.symbol == symbol).first()
@@ -47,10 +56,40 @@ def get_stock(symbol: str, db: Session = Depends(get_db)):
     return stock
 
 
-# 주식 추가 (샘플 데이터 넣을 때 사용)
+# 실시간 가격 조회 (Yahoo Finance)
+@router.get("/{symbol}/price", response_model=StockPriceResponse)
+def get_stock_price(symbol: str):
+    price_data = StockService.get_price(symbol)
+    
+    if price_data.get("error"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"가격 조회 실패: {price_data['error']}"
+        )
+    
+    return StockPriceResponse(
+        symbol=price_data["symbol"],
+        name=price_data["name"],
+        price=price_data["price"],
+        currency=price_data["currency"],
+        change=price_data["change"],
+        change_percent=price_data["change_percent"]
+    )
+
+
+# 여러 주식 실시간 가격 조회
+@router.get("/prices/realtime")
+def get_realtime_prices(db: Session = Depends(get_db)):
+    stocks = db.query(Stock).all()
+    symbols = [stock.symbol for stock in stocks]
+    
+    prices = StockService.get_prices(symbols)
+    return prices
+
+
+# 주식 추가
 @router.post("", response_model=StockResponse)
 def create_stock(request: StockCreateRequest, db: Session = Depends(get_db)):
-    # 중복 확인
     existing = db.query(Stock).filter(Stock.symbol == request.symbol).first()
     if existing:
         raise HTTPException(

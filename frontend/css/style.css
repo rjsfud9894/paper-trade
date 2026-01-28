@@ -160,17 +160,6 @@ header p {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.holding-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.holding-item:last-child {
-    border-bottom: none;
-}
-
 /* 거래 */
 .trading {
     margin-bottom: 30px;
@@ -260,6 +249,114 @@ header p {
     background-color: #f44336;
 }
 
+/* 주식 목록 */
+.stock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.stock-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.stock-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stock-info strong {
+    font-size: 1.1rem;
+}
+
+.stock-info span {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.stock-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.stock-price .price {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.stock-price .change {
+    font-size: 0.9rem;
+}
+
+.stock-item button {
+    padding: 8px 16px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.stock-item button:hover {
+    background-color: #45a049;
+}
+
+/* 수익률 색상 */
+.positive {
+    color: #f44336;
+}
+
+.negative {
+    color: #2196F3;
+}
+
+/* 보유 주식 상세 */
+.holding-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.holding-item:last-child {
+    border-bottom: none;
+}
+
+.holding-value {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+/* 새로고침 버튼 */
+.refresh-btn {
+    padding: 10px 20px;
+    border: none;
+    background-color: #2196F3;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+.refresh-btn:hover {
+    background-color: #1976D2;
+}
+
 /* 반응형 */
 @media (max-width: 600px) {
     .summary-cards {
@@ -268,5 +365,11 @@ header p {
     
     header h1 {
         font-size: 1.8rem;
+    }
+    
+    .stock-item {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
     }
 }
