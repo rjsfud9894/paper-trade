@@ -4,6 +4,9 @@ const API_URL = "http://127.0.0.1:8000";
 // 토큰 저장
 let token = localStorage.getItem("token");
 
+// 주식 가격 캐시
+let stockPrices = {};
+
 // 페이지 로드 시
 document.addEventListener("DOMContentLoaded", function() {
     if (token) {
@@ -119,8 +122,9 @@ async function showDashboard() {
     document.getElementById("dashboard-section").classList.remove("hidden");
     
     await loadUserInfo();
-    await loadPortfolio();
     await loadStocks();
+    await loadRealtimePrices();
+    await loadPortfolio();
     await loadHistory();
 }
 
@@ -138,6 +142,64 @@ async function loadUserInfo() {
     }
 }
 
+// 실시간 가격 로드
+async function loadRealtimePrices() {
+    try {
+        const response = await fetch(API_URL + "/stocks/prices/realtime");
+        const data = await response.json();
+        
+        if (response.ok) {
+            // 가격 캐시에 저장
+            data.forEach(stock => {
+                stockPrices[stock.symbol] = stock;
+            });
+            
+            // 주식 목록 표시
+            displayStockPrices(data);
+        }
+    } catch (error) {
+        console.error("실시간 가격 로드 실패:", error);
+    }
+}
+
+// 주식 가격 표시
+function displayStockPrices(stocks) {
+    const stockList = document.getElementById("stock-list");
+    
+    if (stocks.length === 0) {
+        stockList.innerHTML = "<p>등록된 주식이 없습니다.</p>";
+        return;
+    }
+    
+    stockList.innerHTML = stocks.map(stock => {
+        const changeClass = stock.change >= 0 ? "positive" : "negative";
+        const changeSymbol = stock.change >= 0 ? "+" : "";
+        
+        return `
+            <div class="stock-item">
+                <div class="stock-info">
+                    <strong>${stock.symbol}</strong>
+                    <span>${stock.name}</span>
+                </div>
+                <div class="stock-price">
+                    <span class="price">${formatPrice(stock.price, stock.currency)}</span>
+                    <span class="change ${changeClass}">
+                        ${changeSymbol}${stock.change.toFixed(2)} (${changeSymbol}${stock.change_percent.toFixed(2)}%)
+                    </span>
+                </div>
+                <button onclick="fillTradeForm('${stock.symbol}', ${stock.price})">선택</button>
+            </div>
+        `;
+    }).join("");
+}
+
+// 거래 폼에 자동 입력
+function fillTradeForm(symbol, price) {
+    document.getElementById("trade-symbol").value = symbol;
+    document.getElementById("trade-price").value = price;
+    document.getElementById("trade-quantity").focus();
+}
+
 // 포트폴리오 로드
 async function loadPortfolio() {
     try {
@@ -149,17 +211,35 @@ async function loadPortfolio() {
             document.getElementById("invested").textContent = formatMoney(data.total_invested);
             document.getElementById("total-assets").textContent = formatMoney(data.total_assets);
             
-            // 보유 주식 표시
+            // 보유 주식 표시 (실시간 가격 포함)
             const holdingsList = document.getElementById("holdings-list");
             if (data.holdings.length === 0) {
                 holdingsList.innerHTML = "<p>보유한 주식이 없습니다.</p>";
             } else {
-                holdingsList.innerHTML = data.holdings.map(h => `
-                    <div class="holding-item">
-                        <span><strong>${h.symbol}</strong> (${h.name})</span>
-                        <span>${h.quantity}주 / 평균 ${formatMoney(h.avg_price)}</span>
-                    </div>
-                `).join("");
+                holdingsList.innerHTML = data.holdings.map(h => {
+                    const currentPrice = stockPrices[h.symbol]?.price || h.avg_price;
+                    const currentValue = h.quantity * currentPrice;
+                    const profit = currentValue - h.total_invested;
+                    const profitPercent = (profit / h.total_invested * 100).toFixed(2);
+                    const profitClass = profit >= 0 ? "positive" : "negative";
+                    const profitSymbol = profit >= 0 ? "+" : "";
+                    
+                    return `
+                        <div class="holding-item">
+                            <div>
+                                <strong>${h.symbol}</strong> (${h.name})
+                                <br>
+                                <small>${h.quantity}주 / 평균 ${formatMoney(h.avg_price)}</small>
+                            </div>
+                            <div class="holding-value">
+                                <span>현재가: ${formatMoney(currentPrice)}</span>
+                                <span class="${profitClass}">
+                                    ${profitSymbol}${formatMoney(profit)} (${profitSymbol}${profitPercent}%)
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
             }
         }
     } catch (error) {
@@ -167,7 +247,7 @@ async function loadPortfolio() {
     }
 }
 
-// 주식 목록 로드
+// 주식 목록 로드 (select용)
 async function loadStocks() {
     try {
         const response = await fetch(API_URL + "/stocks");
@@ -255,10 +335,26 @@ async function executeTrade(tradeType) {
     }
 }
 
-// 금액 포맷
+// 가격 새로고침
+async function refreshPrices() {
+    showMessage("가격 새로고침 중...", "success");
+    await loadRealtimePrices();
+    await loadPortfolio();
+    showMessage("가격 업데이트 완료!", "success");
+}
+
+// 금액 포맷 (원화)
 function formatMoney(amount) {
     return new Intl.NumberFormat("ko-KR", {
         style: "currency",
         currency: "KRW"
+    }).format(amount);
+}
+
+// 가격 포맷 (통화 맞춤)
+function formatPrice(amount, currency) {
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency || "USD"
     }).format(amount);
 }
