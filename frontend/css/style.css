@@ -373,3 +373,35 @@ header p {
         text-align: center;
     }
 }
+
+/* 차트 섹션 */
+.chart-section {
+    margin-bottom: 30px;
+}
+
+.chart-section h2 {
+    margin-bottom: 15px;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.chart-controls select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: white;
+}
+
+#chart-container {
+    width: 100%;
+    height: 400px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow: hidden;
+}

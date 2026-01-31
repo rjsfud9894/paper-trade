@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paper Trade - 모의 주식 거래</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
     <div class="container">
@@ -68,6 +69,23 @@
             <div class="holdings">
                 <h2>📊 보유 주식</h2>
                 <div id="holdings-list"></div>
+            </div>
+
+            <!-- 주식 차트 -->
+            <div class="chart-section">
+                <h2>📈 주식 차트</h2>
+                <div class="chart-controls">
+                    <select id="chart-symbol" onchange="loadChart()">
+                        <option value="">종목 선택</option>
+                    </select>
+                    <select id="chart-period" onchange="loadChart()">
+                        <option value="1mo">1개월</option>
+                        <option value="3mo">3개월</option>
+                        <option value="6mo">6개월</option>
+                        <option value="1y">1년</option>
+                    </select>
+                </div>
+                <div id="chart-container"></div>
             </div>
 
             <!-- 주식 거래 -->

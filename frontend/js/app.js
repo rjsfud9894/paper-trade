@@ -123,6 +123,7 @@ async function showDashboard() {
     
     await loadUserInfo();
     await loadStocks();
+    await loadChartStocks();
     await loadRealtimePrices();
     await loadPortfolio();
     await loadHistory();
@@ -345,9 +346,9 @@ async function refreshPrices() {
 
 // 금액 포맷 (원화)
 function formatMoney(amount) {
-    return new Intl.NumberFormat("ko-KR", {
+    return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "KRW"
+        currency: "USD"
     }).format(amount);
 }
 
@@ -358,3 +359,105 @@ function formatPrice(amount, currency) {
         currency: currency || "USD"
     }).format(amount);
 }
+
+// 차트 객체
+let chart = null;
+let candleSeries = null;
+
+// 차트용 주식 목록 로드
+async function loadChartStocks() {
+    try {
+        const response = await fetch(API_URL + "/stocks");
+        const data = await response.json();
+        
+        if (response.ok) {
+            const select = document.getElementById("chart-symbol");
+            select.innerHTML = '<option value="">종목 선택</option>';
+            
+            data.forEach(stock => {
+                select.innerHTML += `<option value="${stock.symbol}">${stock.symbol} - ${stock.name}</option>`;
+            });
+            
+            // 첫 번째 주식 자동 선택
+            if (data.length > 0) {
+                select.value = data[0].symbol;
+                loadChart();
+            }
+        }
+    } catch (error) {
+        console.error("차트 주식 목록 로드 실패:", error);
+    }
+}
+
+// 차트 로드
+async function loadChart() {
+    const symbol = document.getElementById("chart-symbol").value;
+    const period = document.getElementById("chart-period").value;
+    
+    if (!symbol) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(API_URL + `/stocks/${symbol}/history?period=${period}`);
+        const data = await response.json();
+        
+        if (response.ok && data.length > 0) {
+            renderChart(data);
+        }
+    } catch (error) {
+        console.error("차트 데이터 로드 실패:", error);
+    }
+}
+
+// 차트 렌더링
+function renderChart(data) {
+    const container = document.getElementById("chart-container");
+    
+    // 기존 차트 제거
+    container.innerHTML = "";
+    
+    // 새 차트 생성
+    chart = LightweightCharts.createChart(container, {
+        width: container.clientWidth,
+        height: 400,
+        layout: {
+            backgroundColor: '#ffffff',
+            textColor: '#333',
+        },
+        grid: {
+            vertLines: { color: '#f0f0f0' },
+            horzLines: { color: '#f0f0f0' },
+        },
+        rightPriceScale: {
+            borderColor: '#ddd',
+        },
+        timeScale: {
+            borderColor: '#ddd',
+        },
+    });
+    
+    // 캔들스틱 시리즈 추가 (v3 문법)
+    candleSeries = chart.addCandlestickSeries({
+        upColor: '#f44336',
+        downColor: '#2196F3',
+        borderUpColor: '#f44336',
+        borderDownColor: '#2196F3',
+        wickUpColor: '#f44336',
+        wickDownColor: '#2196F3',
+    });
+    
+    // 데이터 설정
+    candleSeries.setData(data);
+    
+    // 차트 크기 자동 조절
+    chart.timeScale().fitContent();
+}
+
+// 윈도우 리사이즈 시 차트 크기 조절
+window.addEventListener('resize', function() {
+    if (chart) {
+        const container = document.getElementById("chart-container");
+        chart.applyOptions({ width: container.clientWidth });
+    }
+});
