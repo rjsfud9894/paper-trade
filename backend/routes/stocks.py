@@ -37,11 +37,30 @@ class StockCreateRequest(BaseModel):
     name: str
 
 
+class CandleData(BaseModel):
+    time: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+
+
 # 전체 주식 목록 조회
 @router.get("", response_model=list[StockResponse])
 def get_stocks(db: Session = Depends(get_db)):
     stocks = db.query(Stock).all()
     return stocks
+
+
+# 실시간 가격 조회 (여러 주식) - 이 라우트를 먼저!
+@router.get("/prices/realtime")
+def get_realtime_prices(db: Session = Depends(get_db)):
+    stocks = db.query(Stock).all()
+    symbols = [stock.symbol for stock in stocks]
+    
+    prices = StockService.get_prices(symbols)
+    return prices
 
 
 # 특정 주식 조회 (DB)
@@ -77,14 +96,18 @@ def get_stock_price(symbol: str):
     )
 
 
-# 여러 주식 실시간 가격 조회
-@router.get("/prices/realtime")
-def get_realtime_prices(db: Session = Depends(get_db)):
-    stocks = db.query(Stock).all()
-    symbols = [stock.symbol for stock in stocks]
+# 주식 가격 히스토리 조회 (차트용)
+@router.get("/{symbol}/history", response_model=list[CandleData])
+def get_stock_history(symbol: str, period: str = "1mo"):
+    history = StockService.get_history(symbol, period)
     
-    prices = StockService.get_prices(symbols)
-    return prices
+    if not history:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="히스토리 조회 실패"
+        )
+    
+    return history
 
 
 # 주식 추가

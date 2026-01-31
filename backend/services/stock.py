@@ -10,7 +10,6 @@ class StockService:
             ticker = yf.Ticker(symbol)
             info = ticker.info
             
-            # 현재 가격 (여러 필드 중 있는 거 사용)
             current_price = (
                 info.get("currentPrice") or
                 info.get("regularMarketPrice") or
@@ -44,3 +43,25 @@ class StockService:
         for symbol in symbols:
             results.append(StockService.get_price(symbol))
         return results
+    
+    @staticmethod
+    def get_history(symbol: str, period: str = "1mo") -> list:
+        """주식 가격 히스토리 가져오기"""
+        try:
+            ticker = yf.Ticker(symbol)
+            history = ticker.history(period=period)
+            
+            data = []
+            for date, row in history.iterrows():
+                data.append({
+                    "time": date.strftime("%Y-%m-%d"),
+                    "open": round(row["Open"], 2),
+                    "high": round(row["High"], 2),
+                    "low": round(row["Low"], 2),
+                    "close": round(row["Close"], 2),
+                    "volume": int(row["Volume"])
+                })
+            
+            return data
+        except Exception as e:
+            return []
